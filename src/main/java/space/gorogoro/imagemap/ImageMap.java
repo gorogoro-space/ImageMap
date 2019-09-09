@@ -80,6 +80,7 @@ public class ImageMap extends JavaPlugin {
     	@Override
     	public void render(MapView view, MapCanvas canvas, Player player) {
     	  try {
+            // TODO UUIDでフォルダを切りたい。
     	    BufferedImage image = ImageIO.read(new File(getDataFolder() + "/image/map_777.png"));
     	    canvas.drawImage(0, 0, image);
     	    image.flush();
