@@ -106,7 +106,6 @@ public class ImageMap extends JavaPlugin implements Listener {
       meta.setMapView(view);
       map.setItemMeta((ItemMeta) meta);
       p.getInventory().setItem(emptySlot, map);
-      p.sendMessage("hogehoge");
       return true;
     } catch (Exception e){
       logStackTrace(e);
