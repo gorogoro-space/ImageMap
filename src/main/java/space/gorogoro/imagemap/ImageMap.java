@@ -35,19 +35,20 @@ public class ImageMap extends JavaPlugin implements Listener {
   static final String DS = "/";
   static final String IMAGE_DIR = "images";
   static final String IMAGE_PREFIX = "map";
-  
+
   @Override
   public void onEnable(){
     try{
       getLogger().info("The Plugin Has Been Enabled!");
+
       getServer().getPluginManager().registerEvents(this, this);
-      
+
       File imageDir = new File(getDataFolder() + DS + IMAGE_DIR);
       if(!imageDir.exists()){
-    	imageDir.mkdirs();
+        imageDir.mkdirs();
       }
-      
-      File configFile = new File(this.getDataFolder() + DS + "config.yml");
+
+      File configFile = new File(getDataFolder() + DS + "config.yml");
       if(!configFile.exists()){
         saveDefaultConfig();
       }
@@ -56,13 +57,7 @@ public class ImageMap extends JavaPlugin implements Listener {
       logStackTrace(e);
     }
   }
- 
-  @EventHandler
-  public void onMapInitializeEvent(MapInitializeEvent e){
-	e.getMap().removeRenderer(e.getMap().getRenderers().get(0));
-	e.getMap().addRenderer(new ImageRenderer());
-  }
-  
+
   // @return true:Success false:Display the usage dialog set in plugin.yml
   @Override
   public boolean onCommand( CommandSender sender, Command commandInfo, String label, String[] args) {
@@ -74,23 +69,22 @@ public class ImageMap extends JavaPlugin implements Listener {
       if(args.length != 1) {
         return false;
       }
-      URL url = new URL(args[0]);
 
       if (!(sender instanceof Player)) {
         return false;
       }
 
       Player p = (Player) sender;
-      
+
       int emptySlot = p.getInventory().firstEmpty();
       if (emptySlot == -1) {
         return false;
       }
 
-      String tempFileName = "downloading_" + p.getName() + "_" + FilenameUtils.getBaseName(url.getPath()) + ".png";
+      String tempFileName = "downloading_" + p.getName() + "_" + FilenameUtils.getBaseName(args[0]) + ".png";
       File tempFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + tempFileName);
-      if(!downloadImageToPng(url, tempFile) || !tempFile.exists()) {
-    	return false;
+      if(!downloadImageToPng(args[0], tempFile) || !tempFile.exists()) {
+        return false;
       }
 
       MapView view=getServer().createMap(p.getWorld());
@@ -106,11 +100,30 @@ public class ImageMap extends JavaPlugin implements Listener {
       meta.setMapView(view);
       map.setItemMeta((ItemMeta) meta);
       p.getInventory().setItem(emptySlot, map);
+
       return true;
     } catch (Exception e){
       logStackTrace(e);
     }
-	return false;
+    return false;
+  }
+
+  @Override
+  public void onDisable(){
+    try{
+      getLogger().info("The Plugin Has Been Disabled!");
+    } catch (Exception e){
+      logStackTrace(e);
+    }
+  }
+
+  @EventHandler
+  public void onMapInitializeEvent(MapInitializeEvent e){
+    File imageFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + e.getMap().getId() + ".png");
+    if(imageFile.exists()) {
+      e.getMap().removeRenderer(e.getMap().getRenderers().get(0));
+      e.getMap().addRenderer(new ImageRenderer());
+    }
   }
 
   private void logStackTrace(Exception e) {
@@ -121,10 +134,11 @@ public class ImageMap extends JavaPlugin implements Listener {
     getLogger().warning(sw.toString());
   }
 
-  private Boolean downloadImageToPng(URL url, File destFile) {
-	try {
+  private Boolean downloadImageToPng(String imageId, File destFile) {
+    try {
       String tempFileName = destFile.getPath() + ".converting";
       File tempFile = new File(tempFileName);
+      URL url = new URL(getConfig().getString("base-url") + imageId + ".png");
       ReadableByteChannel ch = Channels.newChannel(url.openStream());
       FileOutputStream outStream = new FileOutputStream(tempFile);
       outStream.getChannel().transferFrom(ch, 0, Long.MAX_VALUE);
@@ -133,36 +147,27 @@ public class ImageMap extends JavaPlugin implements Listener {
       BufferedImage bufimg = ImageIO.read(tempFile);
       ImageIO.write(bufimg, "png", destFile);
       if(tempFile.exists()) {
-    	tempFile.delete();
+        tempFile.delete();
       }
       return true;
     } catch (Exception e){
-        logStackTrace(e);
+      logStackTrace(e);
     }
-	return false;
-  }
-  
-  private class ImageRenderer extends MapRenderer {
-	@Override
-	public void render(MapView view, MapCanvas canvas, Player player) {
-	  try {
-	    BufferedImage image = ImageIO.read(
-	      new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + view.getId() + ".png")
-	    );
-	    canvas.drawImage(0, 0, image);
-	    image.flush();
-	  } catch(Exception e) {
-	    logStackTrace(e);
-	  }        
-	}
+    return false;
   }
 
-  @Override
-  public void onDisable(){
-    try{
-      getLogger().info("The Plugin Has Been Disabled!");
-    } catch (Exception e){
-      logStackTrace(e);
+  private class ImageRenderer extends MapRenderer {
+    @Override
+    public void render(MapView view, MapCanvas canvas, Player player) {
+      try {
+        BufferedImage image = ImageIO.read(
+          new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + view.getId() + ".png")
+        );
+        canvas.drawImage(0, 0, image);
+        image.flush();
+      } catch(Exception e) {
+        logStackTrace(e);
+      }
     }
   }
 }
