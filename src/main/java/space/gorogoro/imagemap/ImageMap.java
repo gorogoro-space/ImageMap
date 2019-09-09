@@ -76,6 +76,7 @@ public class ImageMap extends JavaPlugin {
       view.setCenterX(0);
       view.setCenterZ(0);
       view.setScale(MapView.Scale.CLOSEST);
+      // TODO 鯖再起動やreloadやchunkアンロードでレンダーが外れてしまったら、MapInitializeEventで付け直す処理をする。その場合はMapRendererの無名クラスをちゃんと有名クラスにして扱う
       view.addRenderer(new MapRenderer() {
     	@Override
     	public void render(MapView view, MapCanvas canvas, Player player) {
