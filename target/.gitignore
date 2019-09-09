@@ -1,0 +1,8 @@
+antrun/
+classes/
+generated-sources/
+maven-archiver/
+maven-status/
+surefire-reports/
+test-classes/
+
