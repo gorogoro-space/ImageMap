@@ -3,9 +3,9 @@ version: 1.0
 description: image map.
 author: kubotan
 main: space.gorogoro.imagemap.ImageMap
-website: http://blog.gorogoro.space/
+website: https://blog.gorogoro.space/
 
 commands:
   imagemap:
-    description: ポスターを取得します。
-    usage: §c/<command> (map id) §7- 指定されたMAP IDのポスターを作成します。
+    description: ポスターを作成します。
+    usage: §c/<command> (Image Id) §7- 指定されたImage Idのポスターを作成します。
