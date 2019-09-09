@@ -3,7 +3,6 @@ package space.gorogoro.imagemap;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -35,6 +34,7 @@ public class ImageMap extends JavaPlugin implements Listener {
 
   static final String DS = "/";
   static final String IMAGE_DIR = "images";
+  static final String IMAGE_PREFIX = "map";
   
   @Override
   public void onEnable(){
@@ -51,26 +51,7 @@ public class ImageMap extends JavaPlugin implements Listener {
       if(!configFile.exists()){
         saveDefaultConfig();
       }
-      
-      FilenameFilter filter = new FilenameFilter() {
-        public boolean accept(File dir, String name) {
-    	  if (name.startsWith("map_") && name.endsWith(".png")) {
-    	    return true;
-    	  } else {
-    	    return false;
-    	  }
-    	}
-      };
 
-/*
-      int mapId = -1;
-      for(File f: imageDir.listFiles(filter)) {
-    	mapId = Integer.parseInt(f.getName().replaceAll("[^0-9]",""));
-    	if(mapId >= 0) {
-    	  getServer().getMap(mapId).toString();
-    	}
-      }
-*/
     } catch (Exception e){
       logStackTrace(e);
     }
@@ -114,7 +95,7 @@ public class ImageMap extends JavaPlugin implements Listener {
 
       MapView view=getServer().createMap(p.getWorld());
       Integer mapId = view.getId();
-      Path savePath = Paths.get(getDataFolder() + DS + IMAGE_DIR + DS + "map_" + mapId + ".png");
+      Path savePath = Paths.get(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + mapId + ".png");
       Files.move(tempFile.toPath(), savePath);
       view.setCenterX(0);
       view.setCenterZ(0);
@@ -167,7 +148,7 @@ public class ImageMap extends JavaPlugin implements Listener {
 	public void render(MapView view, MapCanvas canvas, Player player) {
 	  try {
 	    BufferedImage image = ImageIO.read(
-	      new File(getDataFolder() + DS + IMAGE_DIR + DS + "map_" + view.getId() + ".png")
+	      new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + view.getId() + ".png")
 	    );
 	    canvas.drawImage(0, 0, image);
 	    image.flush();
