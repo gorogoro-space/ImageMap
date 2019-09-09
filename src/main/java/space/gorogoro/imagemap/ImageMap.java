@@ -2,54 +2,87 @@ package space.gorogoro.imagemap;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.MapInitializeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapRenderer;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/*
- * ImageMap
- * @license    LGPLv3
- * @copyright  Copyright gorogoro.space 2019
- * @author     kubotan
- * @see        <a href="https://blog.gorogoro.space">Kubotan's blog.</a>
- */
-public class ImageMap extends JavaPlugin {
+public class ImageMap extends JavaPlugin implements Listener {
 
-  /**
-   * JavaPlugin method onEnable.
-   */
+  static final String DS = "/";
+  static final String IMAGE_DIR = "images";
+  
   @Override
   public void onEnable(){
     try{
       getLogger().info("The Plugin Has Been Enabled!");
-      // If there is no setting file, it is created
-      if(!getDataFolder().exists()){
-        getDataFolder().mkdir();
+      getServer().getPluginManager().registerEvents(this, this);
+      
+      File imageDir = new File(getDataFolder() + DS + IMAGE_DIR);
+      if(!imageDir.exists()){
+    	imageDir.mkdirs();
       }
-      File configFile = new File(getDataFolder() + "/config.yml");
+      
+      File configFile = new File(this.getDataFolder() + DS + "config.yml");
       if(!configFile.exists()){
         saveDefaultConfig();
       }
+      
+      FilenameFilter filter = new FilenameFilter() {
+        public boolean accept(File dir, String name) {
+    	  if (name.startsWith("map_") && name.endsWith(".png")) {
+    	    return true;
+    	  } else {
+    	    return false;
+    	  }
+    	}
+      };
+
+/*
+      int mapId = -1;
+      for(File f: imageDir.listFiles(filter)) {
+    	mapId = Integer.parseInt(f.getName().replaceAll("[^0-9]",""));
+    	if(mapId >= 0) {
+    	  getServer().getMap(mapId).toString();
+    	}
+      }
+*/
     } catch (Exception e){
       logStackTrace(e);
     }
   }
  
-  /**
-   * JavaPlugin method onCommand.
-   * @return true:Success false:Display the usage dialog set in plugin.yml
-   */
+  @EventHandler
+  public void onMapInitializeEvent(MapInitializeEvent e){
+	e.getMap().removeRenderer(e.getMap().getRenderers().get(0));
+	e.getMap().addRenderer(new ImageRenderer());
+  }
+  
+  // @return true:Success false:Display the usage dialog set in plugin.yml
   @Override
   public boolean onCommand( CommandSender sender, Command commandInfo, String label, String[] args) {
     try{
@@ -57,9 +90,10 @@ public class ImageMap extends JavaPlugin {
         return false;
       }
 
-      if(args.length == 1) {
+      if(args.length != 1) {
         return false;
       }
+      URL url = new URL(args[0]);
 
       if (!(sender instanceof Player)) {
         return false;
@@ -72,28 +106,55 @@ public class ImageMap extends JavaPlugin {
         return false;
       }
 
+      String tempFileName = "downloading_" + p.getName() + "_" + FilenameUtils.getBaseName(url.getPath()) + ".png";
+      File tempFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + tempFileName);
+      if(!downloadImageToPng(url, tempFile) || !tempFile.exists()) {
+    	return false;
+      }
+
       MapView view=getServer().createMap(p.getWorld());
+      Integer mapId = view.getId();
+      Path savePath = Paths.get(getDataFolder() + DS + IMAGE_DIR + DS + "map_" + mapId + ".png");
+      Files.move(tempFile.toPath(), savePath);
       view.setCenterX(0);
       view.setCenterZ(0);
       view.setScale(MapView.Scale.CLOSEST);
-      // TODO 鯖再起動やreloadやchunkアンロードでレンダーが外れてしまったら、MapInitializeEventで付け直す処理をする。その場合はMapRendererの無名クラスをちゃんと有名クラスにして扱う
-      view.addRenderer(new MapRenderer() {
-    	@Override
-    	public void render(MapView view, MapCanvas canvas, Player player) {
-    	  try {
-            // TODO UUIDでフォルダを切りたい。
-    	    BufferedImage image = ImageIO.read(new File(getDataFolder() + "/image/map_777.png"));
-    	    canvas.drawImage(0, 0, image);
-    	    image.flush();
-    	  } catch(Exception e) {
-    	    logStackTrace(e);
-    	  }        
-    	}
-      });
-      
-      ItemStack map = new ItemStack(Material.MAP,view.getId());
+      view.addRenderer(new ImageRenderer());
+      ItemStack map = new ItemStack(Material.MAP, 1);
+      MapMeta meta = (MapMeta)map.getItemMeta();
+      meta.setMapView(view);
+      map.setItemMeta((ItemMeta) meta);
       p.getInventory().setItem(emptySlot, map);
+      p.sendMessage("hogehoge");
+      return true;
+    } catch (Exception e){
+      logStackTrace(e);
+    }
+	return false;
+  }
 
+  private void logStackTrace(Exception e) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    e.printStackTrace(pw);
+    pw.flush();
+    getLogger().warning(sw.toString());
+  }
+
+  private Boolean downloadImageToPng(URL url, File destFile) {
+	try {
+      String tempFileName = destFile.getPath() + ".converting";
+      File tempFile = new File(tempFileName);
+      ReadableByteChannel ch = Channels.newChannel(url.openStream());
+      FileOutputStream outStream = new FileOutputStream(tempFile);
+      outStream.getChannel().transferFrom(ch, 0, Long.MAX_VALUE);
+      ch.close();
+      outStream.close();
+      BufferedImage bufimg = ImageIO.read(tempFile);
+      ImageIO.write(bufimg, "png", destFile);
+      if(tempFile.exists()) {
+    	tempFile.delete();
+      }
       return true;
     } catch (Exception e){
         logStackTrace(e);
@@ -101,20 +162,21 @@ public class ImageMap extends JavaPlugin {
 	return false;
   }
   
-  /**
-   * logStackTrace
-   */
-  private void logStackTrace(Exception e) {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      pw.flush();
-      getLogger().warning(sw.toString());
+  private class ImageRenderer extends MapRenderer {
+	@Override
+	public void render(MapView view, MapCanvas canvas, Player player) {
+	  try {
+	    BufferedImage image = ImageIO.read(
+	      new File(getDataFolder() + DS + IMAGE_DIR + DS + "map_" + view.getId() + ".png")
+	    );
+	    canvas.drawImage(0, 0, image);
+	    image.flush();
+	  } catch(Exception e) {
+	    logStackTrace(e);
+	  }        
+	}
   }
-  
-  /**
-   * JavaPlugin method onDisable.
-   */
+
   @Override
   public void onDisable(){
     try{
