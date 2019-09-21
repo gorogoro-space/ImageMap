@@ -11,6 +11,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -67,6 +69,12 @@ public class ImageMap extends JavaPlugin implements Listener {
       }
 
       if(args.length != 1) {
+        return false;
+      }
+
+      Pattern pattern = Pattern.compile("[^A-Za-z0-9_]");
+      Matcher matcher = pattern.matcher(args[0]);
+      if (matcher.find()) {
         return false;
       }
 
