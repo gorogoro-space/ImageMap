@@ -5,4 +5,6 @@
        - The image file must be 128px * 128px.
        - Ex. (base-url value in config.yml)/test123.png
        -     /imagemap test123
-      
+
+## Other
+File system permissions are granted under images in the plug-in folder.
