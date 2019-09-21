@@ -157,14 +157,20 @@ public class ImageMap extends JavaPlugin implements Listener {
   }
 
   private class ImageRenderer extends MapRenderer {
+
+    BufferedImage image;
+
     @Override
     public void render(MapView view, MapCanvas canvas, Player player) {
       try {
-        BufferedImage image = ImageIO.read(
+        if(image != null) {
+           return;
+        }
+
+        image = ImageIO.read(
           new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + view.getId() + ".png")
         );
         canvas.drawImage(0, 0, image);
-        image.flush();
       } catch(Exception e) {
         logStackTrace(e);
       }
