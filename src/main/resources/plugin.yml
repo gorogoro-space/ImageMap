@@ -7,5 +7,12 @@ website: https://blog.gorogoro.space/
 
 commands:
   imagemap:
-    description: ポスターを作成します。
-    usage: §c/<command> (Image Id) §7- 指定されたImage Idのポスターを作成します。
+    description: create image map.
+    usage: |
+      §c/<command> (filename) §7- Create a map of the specified PNG file.
+      §7 - Use A-Za-z0-9_ characters to specify the file name.
+      §7 - The extension .png is not required for the file name.
+      §7 - The image file must be 128px * 128px.
+      §7 - Ex. (base-url value in config.yml)/test123.png
+      §7 -     /<command> test123
+      
