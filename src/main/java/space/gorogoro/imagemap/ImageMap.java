@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -89,7 +88,7 @@ public class ImageMap extends JavaPlugin implements Listener {
         return false;
       }
 
-      String tempFileName = "downloading_" + p.getName() + "_" + FilenameUtils.getBaseName(args[0]) + ".png";
+      String tempFileName = "downloading_" + p.getName() + "_" + getBaseName(args[0]) + ".png";
       File tempFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + tempFileName);
       if(!downloadImageToPng(args[0], tempFile) || !tempFile.exists()) {
         return false;
@@ -103,7 +102,7 @@ public class ImageMap extends JavaPlugin implements Listener {
       view.setCenterZ(0);
       view.setScale(MapView.Scale.CLOSEST);
       view.addRenderer(new ImageRenderer());
-      ItemStack map = new ItemStack(Material.MAP, 1);
+      ItemStack map = new ItemStack(Material.FILLED_MAP, 1);
       MapMeta meta = (MapMeta)map.getItemMeta();
       meta.setMapView(view);
       map.setItemMeta((ItemMeta) meta);
@@ -164,6 +163,15 @@ public class ImageMap extends JavaPlugin implements Listener {
     return false;
   }
 
+  private static String getBaseName(String path) {
+    String name = new File(path).getName();
+    int idx = name.lastIndexOf(".");
+    if(idx < 0) {
+      return name;
+    }
+    return name.substring(0, idx);
+  }
+  
   private class ImageRenderer extends MapRenderer {
 
     BufferedImage image;
