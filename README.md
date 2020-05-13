@@ -10,5 +10,5 @@
 File system permissions are granted under images in the plug-in folder.
 
 ## Link
-https://www.spigotmc.org/resources/imagemap.71465/
-https://dev.bukkit.org/projects/imagemap
+- https://www.spigotmc.org/resources/imagemap.71465/
+- https://dev.bukkit.org/projects/imagemap
