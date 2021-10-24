@@ -33,7 +33,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class ImageMap extends JavaPlugin implements Listener {
 
-  static final String DS = "/";
   static final String IMAGE_DIR = "images";
   static final String IMAGE_PREFIX = "map";
 
@@ -44,12 +43,12 @@ public class ImageMap extends JavaPlugin implements Listener {
 
       getServer().getPluginManager().registerEvents(this, this);
 
-      File imageDir = new File(getDataFolder() + DS + IMAGE_DIR);
+      File imageDir = new File(getDataFolder() + File.separator + IMAGE_DIR);
       if(!imageDir.exists()){
         imageDir.mkdirs();
       }
 
-      File configFile = new File(getDataFolder() + DS + "config.yml");
+      File configFile = new File(getDataFolder() + File.separator + "config.yml");
       if(!configFile.exists()){
         saveDefaultConfig();
       }
@@ -89,14 +88,14 @@ public class ImageMap extends JavaPlugin implements Listener {
       }
 
       String tempFileName = "downloading_" + p.getName() + "_" + getBaseName(args[0]) + ".png";
-      File tempFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + tempFileName);
+      File tempFile = new File(getDataFolder() + File.separator + IMAGE_DIR + File.separator + tempFileName);
       if(!downloadImageToPng(args[0], tempFile) || !tempFile.exists()) {
         return false;
       }
 
       MapView view=getServer().createMap(p.getWorld());
       Integer mapId = view.getId();
-      Path savePath = Paths.get(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + mapId + ".png");
+      Path savePath = Paths.get(getDataFolder() + File.separator + IMAGE_DIR + File.separator + IMAGE_PREFIX + mapId + ".png");
       Files.move(tempFile.toPath(), savePath);
       view.setCenterX(0);
       view.setCenterZ(0);
@@ -126,7 +125,7 @@ public class ImageMap extends JavaPlugin implements Listener {
 
   @EventHandler
   public void onMapInitializeEvent(MapInitializeEvent e){
-    File imageFile = new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + e.getMap().getId() + ".png");
+    File imageFile = new File(getDataFolder() + File.separator + IMAGE_DIR + File.separator + IMAGE_PREFIX + e.getMap().getId() + ".png");
     if(imageFile.exists()) {
       e.getMap().removeRenderer(e.getMap().getRenderers().get(0));
       e.getMap().addRenderer(new ImageRenderer());
@@ -184,7 +183,7 @@ public class ImageMap extends JavaPlugin implements Listener {
         }
 
         image = ImageIO.read(
-          new File(getDataFolder() + DS + IMAGE_DIR + DS + IMAGE_PREFIX + view.getId() + ".png")
+          new File(getDataFolder() + File.separator + IMAGE_DIR + File.separator + IMAGE_PREFIX + view.getId() + ".png")
         );
         canvas.drawImage(0, 0, image);
       } catch(Exception e) {

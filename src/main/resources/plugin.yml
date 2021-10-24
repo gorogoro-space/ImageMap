@@ -1,10 +1,10 @@
 name: ImageMap
-version: 1.1
+version: 1.2
 api-version: 1.15
 description: image map.
 author: kubotan
 main: space.gorogoro.imagemap.ImageMap
-website: https://blog.gorogoro.space/
+website: https://gorogoro.space/
 
 commands:
   imagemap:
@@ -16,4 +16,3 @@ commands:
       §7 - The image file must be 128px * 128px.
       §7 - Ex. (base-url value in config.yml)/test123.png
       §7 -     /<command> test123
-      
