@@ -4,7 +4,7 @@ api-version: 1.15
 description: image map.
 author: kubotan
 main: space.gorogoro.imagemap.ImageMap
-website: https://blog.gorogoro.space/
+website: https://www.gorogoro.space/
 
 commands:
   imagemap:
